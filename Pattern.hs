@@ -12,7 +12,6 @@ substitute _ [] _ = []
 substitute wildcard (p:ps) s
     | p == wildcard = substitute wildcard (s ++ ps) s
     | otherwise = p:(substitute wildcard ps s)
-substitute _ _ _ = []
 
 
 -- Tries to match two lists. If they match, the result consists of the sublist
@@ -22,27 +21,18 @@ match _ [] [] = Just []
 match _ [] _ = Nothing
 match _ _ [] = Nothing
 match wildcard (p:ps) (s:ss)
-    | (p == wildcard) = orElse(singleWildcardMatch, longerWildcardMatch)
+    | (p == wildcard) = orElse (singleWildcardMatch (p:ps) (s:ss)) (longerWildcardMatch (p:ps) (s:ss))
     | p == s = match wildcard ps ss
     | otherwise = Nothing
-match _ _ _ = Nothing
 {- TO BE WRITTEN -}
 
 
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
-singleWildcardMatch (wc:ps) (x:xs)
-    | ps == xs = 
-    | 
+singleWildcardMatch (wc:ps) (x:xs) = mmap (const[x]) (match wc ps xs)
 
+longerWildcardMatch (wc:ps) (x:xs) = mmap (x:) (match wc (wc:ps) xs)
 
-{- TO BE WRITTEN -}
-longerWildcardMatch (wc:ps) (x:xs) = Nothing
-{- TO BE WRITTEN -}
-
-
-*hej*
-bheja
 
 -- Test cases --------------------
 
