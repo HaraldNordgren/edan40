@@ -35,8 +35,10 @@ rulesApply :: [PhrasePair] -> Phrase -> Phrase
 rulesApply _ = id
 
 reflect :: Phrase -> Phrase
-{- TO BE WRITTEN -}
-reflect = id
+reflect [] = []
+reflect (p:phrase)
+   | p == (fst (head reflections)) = (snd (head reflections)):(reflect phrase)
+   | otherwise = p:(reflect phrase)
 
 reflections =
   [ ("am",     "are"),

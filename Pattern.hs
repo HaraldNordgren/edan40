@@ -1,6 +1,9 @@
 module Pattern where
 import Utilities
 
+frenchPresentation = ("My name is *", "Je m'appelle *")
+swedishPresentation = [("I live in *", "Jag bor i *"), ("My name is *", "Jag heter *"), ("I am from *", "Jag kommer från *")] 
+
 
 -------------------------------------------------------
 -- Match and substitute
@@ -24,7 +27,6 @@ match wildcard (p:ps) (s:ss)
     | (p == wildcard) = orElse (singleWildcardMatch (p:ps) (s:ss)) (longerWildcardMatch (p:ps) (s:ss))
     | p == s = match wildcard ps ss
     | otherwise = Nothing
-{- TO BE WRITTEN -}
 
 
 -- Helper function to match
@@ -32,7 +34,6 @@ singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
 singleWildcardMatch (wc:ps) (x:xs) = mmap (const[x]) (match wc ps xs)
 
 longerWildcardMatch (wc:ps) (x:xs) = mmap (x:) (match wc (wc:ps) xs)
-
 
 -- Test cases --------------------
 
@@ -54,12 +55,11 @@ matchCheck = matchTest == Just testSubstitutions
 
 -- Applying a single pattern
 transformationApply :: Eq a => a -> ([a] -> [a]) -> [a] -> ([a], [a]) -> Maybe [a]
-transformationApply _ _ _ _ = Nothing
-{- TO BE WRITTEN -}
+transformationApply wc f string tuple = mmap (substitute wc (snd tuple)) (match wc (fst tuple) string)
 
 
 -- Applying a list of patterns until one succeeds
 transformationsApply :: Eq a => a -> ([a] -> [a]) -> [([a], [a])] -> [a] -> Maybe [a]
-transformationsApply _ _ _ _ = Nothing
-{- TO BE WRITTEN -}
+transformationsApply _ _ [] _ = Nothing
+transformationsApply wc f (tuple:tupleList) string = orElse (transformationApply wc f string tuple) (transformationsApply wc f tupleList string)
 
