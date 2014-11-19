@@ -27,15 +27,11 @@ type BotBrain = [(Phrase, [Phrase])]
 --------------------------------------------------------
 
 stateOfMind :: BotBrain -> IO (Phrase -> Phrase)
-{- TO BE WRITTEN -}
-stateOfMind _ = return id
+stateOfMind brain = do
+  rand <- randomIO :: IO Float
+  return $ rulesApply (findElem brain rand)
 
-
-rollDice :: IO ()
-rollDice = do
-   r <- randomIO :: IO Float
-   putStrLn ("You rolled " ++ show (floor (6*r+1)))
-
+findElem brain rand = [(x,(pick rand y)) | (x,y) <- brain]
 
 
 
@@ -86,8 +82,7 @@ prepare :: String -> Phrase
 prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|") 
 
 rulesCompile :: [(String, [String])] -> BotBrain
-{- TO BE WRITTEN -}
-rulesCompile _ = []
+rulesCompile [x,y] = map (words (map toLower x), map words y)
 
 
 --------------------------------------
