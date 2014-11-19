@@ -55,11 +55,11 @@ matchCheck = matchTest == Just testSubstitutions
 
 -- Applying a single pattern
 transformationApply :: Eq a => a -> ([a] -> [a]) -> [a] -> ([a], [a]) -> Maybe [a]
-transformationApply wc f string tuple = mmap (substitute wc (snd tuple)) (match wc (fst tuple) string)
+transformationApply wc f string tuple = mmap (substitute wc (snd tuple)) (mmap f (match wc (fst tuple) string))
 
 
 -- Applying a list of patterns until one succeeds
 transformationsApply :: Eq a => a -> ([a] -> [a]) -> [([a], [a])] -> [a] -> Maybe [a]
 transformationsApply _ _ [] _ = Nothing
-transformationsApply wc f (tuple:tupleList) string = orElse (transformationApply wc f string tuple) (transformationsApply wc f tupleList string)
+transformationsApply wc f (tuple:tuples) string = orElse (transformationApply wc f string tuple) (transformationsApply wc f tuples string)
 

@@ -31,14 +31,19 @@ stateOfMind :: BotBrain -> IO (Phrase -> Phrase)
 stateOfMind _ = return id
 
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
-{- TO BE WRITTEN -}
-rulesApply _ = id
+rulesApply pairs phrase = try (transformationsApply "*" reflect pairs) phrase
+--rulesApply (pair:pairs) phrase = try (transformationsApply '*' id (unwords p1, unwords p2) phrase)
 
 reflect :: Phrase -> Phrase
 reflect [] = []
-reflect (p:phrase)
-   | p == (fst (head reflections)) = (snd (head reflections)):(reflect phrase)
-   | otherwise = p:(reflect phrase)
+reflect (word:phrase) = (replace word reflections):(reflect phrase)
+
+replace [] _ = []
+replace word [] = word
+replace word (r:rs)
+   | word == fst r = snd r
+   | word == snd r = fst r
+   | otherwise = replace word rs
 
 reflections =
   [ ("am",     "are"),
