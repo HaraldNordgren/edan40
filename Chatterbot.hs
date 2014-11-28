@@ -6,16 +6,20 @@ import Data.Char
 
 chatterbot :: String -> [(String, [String])] -> IO ()
 chatterbot botName botRules = do
-    putStrLn ("\n\nHi! I am " ++ botName ++ ". How are you?")
+    putStrLn ("\nHi! I am " ++ botName ++ ". How are you?")
     botloop
   where
     brain = rulesCompile botRules
     botloop = do
-      putStr "\n: "
       question <- getLine
       answer <- stateOfMind brain
-      putStrLn (botName ++ ": " ++ (present . answer . prepare) question)
-      if (not . endOfDialog) question then botloop else return ()
+      putStr "\n"
+      putStrLn (botName ++ ":" ++ (present . answer . prepare) question)
+      if (not . endOfDialog) question
+        then botloop
+        else do
+          putStr "\n"
+          return ()
 
 --------------------------------------------------------
 
@@ -29,26 +33,15 @@ type BotBrain = [(Phrase, [Phrase])]
 stateOfMind :: BotBrain -> IO (Phrase -> Phrase)
 stateOfMind brain = do
   rand <- randomIO :: IO Float
-  return $ rulesApply (findElem brain rand)
-
-findElem brain rand = [(x,(pick rand y)) | (x,y) <- brain]
-
-
+  return $ rulesApply $ (map.map2) (id, pick rand) brain
 
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
-rulesApply pairs phrase = try (transformationsApply "*" reflect pairs) phrase
---rulesApply (pair:pairs) phrase = try (transformationsApply '*' id (unwords p1, unwords p2) phrase)
+rulesApply = try . (transformationsApply "*" reflect)
 
 reflect :: Phrase -> Phrase
-reflect [] = []
-reflect (word:phrase) = (replace word reflections):(reflect phrase)
+reflect = map helper
+  where helper x = maybe x id (lookup x reflections)
 
-replace [] _ = []
-replace word [] = word
-replace word (r:rs)
-   | word == fst r = snd r
-   | word == snd r = fst r
-   | otherwise = replace word rs
 
 reflections =
   [ ("am",     "are"),
@@ -70,21 +63,25 @@ reflections =
   ]
 
 
----------------------------------------------------------------------------------
+--------------------------------------------------------
 
 endOfDialog :: String -> Bool
 endOfDialog = (=="quit") . map toLower
 
+-- Removes the space before the question mark in Eliza's questions
 present :: Phrase -> String
-present = unwords
+present [] = []
+present (word:phrase)
+  | word == "?" = "?"
+  | otherwise = " " ++ word ++ (present phrase)
 
 prepare :: String -> Phrase
 prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|") 
 
 rulesCompile :: [(String, [String])] -> BotBrain
-rulesCompile = map (\(x,y) -> (words (map toLower x), map words y))
+rulesCompile = map (map2 (words . (map toLower), map words))
 
---------------------------------------
+--------------------------------------------------------
 
 
 reductions :: [PhrasePair]
@@ -99,14 +96,12 @@ reductions = (map.map2) (words, words)
     ( "do you know what * is", "what is *" ),
     ( "are you very *", "are you *" ),
     ( "i am very *", "i am *" ),
-    ( "hi *", "hello *")
+    ( "hi *", "hello *"),
+    ( "i'm *", "i am *" )
   ]
 
 reduce :: Phrase -> Phrase
 reduce = reductionsApply reductions
 
 reductionsApply :: [PhrasePair] -> Phrase -> Phrase
-{- TO BE WRITTEN -}
-reductionsApply _ = id
-
-
+reductionsApply = fix . try . (transformationsApply "*" id)

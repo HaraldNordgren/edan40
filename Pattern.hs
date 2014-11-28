@@ -1,8 +1,8 @@
 module Pattern where
 import Utilities
 
-frenchPresentation = ("My name is *", "Je m'appelle *")
-swedishPresentation = [("I live in *", "Jag bor i *"), ("My name is *", "Jag heter *"), ("I am from *", "Jag kommer från *")] 
+--frenchPresentation = ("My name is *", "Je m'appelle *")
+--swedishPresentation = [("I live in *", "Jag bor i *"), ("My name is *", "Jag heter *"), ("I am from *", "Jag kommer från *")] 
 
 
 -------------------------------------------------------
@@ -55,11 +55,9 @@ matchCheck = matchTest == Just testSubstitutions
 
 -- Applying a single pattern
 transformationApply :: Eq a => a -> ([a] -> [a]) -> [a] -> ([a], [a]) -> Maybe [a]
-transformationApply wc f string tuple = mmap (substitute wc (snd tuple)) (mmap f (match wc (fst tuple) string))
+transformationApply wc f string (x, y) = mmap (substitute wc y) (mmap f $ match wc x string)
 
 
 -- Applying a list of patterns until one succeeds
 transformationsApply :: Eq a => a -> ([a] -> [a]) -> [([a], [a])] -> [a] -> Maybe [a]
-transformationsApply _ _ [] _ = Nothing
-transformationsApply wc f (tuple:tuples) string = orElse (transformationApply wc f string tuple) (transformationsApply wc f tuples string)
-
+transformationsApply wc f tuples string = foldr1 orElse $ map (transformationApply wc f string) tuples
