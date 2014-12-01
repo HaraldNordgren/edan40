@@ -18,8 +18,23 @@
 > vol  n = n   v
 > v      = [Volume 80]
 > lmap f l = line (map f l)
+>
+> ionianScale pitch = map (helper pitch) [0,2,4,5,7,9,11]
+>   where helper pitch x = trans x pitch
+>
+> twinkleChords pitch nbrs = map (scale !!) (map (subtract 1) nbrs)
+>  where scale = ionianScale pitch
 > 
+> chordProgression1 = [C,C,F,C,G,C,G,C]
 > 
+> --autoBass :: BassStyle -> Key -> ChordProgression -> Music
+> --autoBass bassStyle key chordProgression = 
+>
+> --bass bassStyle key chordProgression = 
+>
+> type BassStyle = [(Int, Dur)]
+> --basic = [(1, hn), (5, hn)]
+>
 > -- Baseline:
 > list = [b 2, b 3]
 > basic = lmap (fd hn) [b 2, b 3]
@@ -32,6 +47,6 @@
 > music = times 200 boogie
 > 
 > -- Putting it all together:
-> autoBass = Instr "bass" (Tempo 3 (Phrase [Dyn SF] music))
+> total = Instr "bass" (Tempo 3 (Phrase [Dyn SF] music))
 
 \end{verbatim} }
