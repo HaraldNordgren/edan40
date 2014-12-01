@@ -669,6 +669,11 @@ parameterized attributes:
 > accent    = Accent 1.2
 > bigAccent = Accent 1.5
 
+> --ADDED BY ME
+> -- repeat something n times
+> times  1    m = m
+> times n m = m :+: (times (n - 1) m)
+
 \end{verbatim} 
 
 To understand exactly how a player interprets an attribute requires

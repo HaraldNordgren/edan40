@@ -68,6 +68,8 @@
 > -- c) generate a midifile
 > test     :: Music -> IO ()
 > test     m = outputMidiFile "test.mid" (testMidi m)
+>
+> test2 m name = outputMidiFile name (testMidi m)
 > 
 > -- d) generate and play a midifile on Windows 95, Windows NT, Linux or MacOSX 
 > testWin95, testNT, testLinux, testMac :: Music -> IO ()
@@ -81,7 +83,7 @@
 >                 return ()
 > testLinux m = do
 >                 test m
->                 system "playmidi -rf test.mid"
+>                 system "timidity test.mid"
 >                 return ()
 > testMac m = do
 >                 test m
