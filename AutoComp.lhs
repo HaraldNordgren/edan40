@@ -1,14 +1,11 @@
-\section{Auto Bass}
+\section{AutoComp}
 \label{dfdfrrfchild}
 
 {\small\begin{verbatim} 
 
-> module AutoBass where
+> module AutoComp where
 > import Control.Exception hiding (assert)
 > import Haskore
-> 
-> 
-> 
 >
 > --cMajor = chord [ Note (x, 4) (hn) [Volume 60] | x<-[C, E, G] ]
 > --cNote = Note (C, 4) (hn) [Volume 60]
@@ -19,23 +16,29 @@
 > v      = [Volume 80]
 > lmap f l = line (map f l)
 >
+>
 > 
+> majScale pitch = map (flip trans pitch)
+> majChord pitch pattern = map (flip trans pitch . (pattern !!)) [0,2,4]
 >
+> aswrere pc = map (majScale (pc, 3) [0, 2, 4, 5, 7, 9, 11] !!)
 >
-> ionianScale pitch = map (helper pitch) [0,2,4,5,7,9,11]
->   where helper pitch x = trans x pitch
->
-> keyChord pitch sequence = map (scale !!) $ map (subtract 1) sequence
->   where scale = ionianScale pitch
->
->
-> boogieBass note = line $ map (halp . Note) (keyChord (note, 3) [1,5,6,5])
->   where halp x = x en [Volume 60]
+> boogieBass pc = line $ map (helper . Note) (aswrere pc [0,4,5,4])
+>   where helper x = x en [Volume 60]
 >
 > bass1 = line $ map boogieBass [C,C,D,C,G,C,G,C]
 > bass2 = line $ map boogieBass [C,G,C,G,C,G,C,G]
 >
 > bass = Instr "bass" $ line [bass1, bass2, bass1]
+>
+>
+>
+>
+> type BassStyle = [(Maybe Int, Dur)]
+> basic = [(Just 1, hn), (Just 5, hn)]
+> calypso = [(Nothing, qn), (Just 1, en), (Just 3, en)] 
+> boogie = [(Just 1, en), (Just 5, en), (Just 6, en), (Just 5, en)] --half
+> 
 >
 > --autoBass :: BassStyle -> Key -> ChordProgression -> Music
 > --autoBass bassStyle key chordProgression = 
