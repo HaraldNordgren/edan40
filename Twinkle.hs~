@@ -28,6 +28,7 @@ lydian     = [0, 2, 4, 6, 7, 9, 11]
 
 -- "chordScale pitch ionian" generates a regular major scale
 chordScale pitch = map (flip trans pitch)
+--majScale pitch = map (flip trans pitch) ionian
 
 makeChord c
   | c == C = majChord (C, 5) ionian
