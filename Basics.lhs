@@ -17,7 +17,7 @@ consists of a {\em pitch class} (i.e. one of 12 semi-tones) and an
 > type Pitch      = (PitchClass, Octave)
 > data PitchClass = Cf | C | Cs | Df | D | Ds | Ef | E | Es | Ff | F | Fs
 >                 | Gf | G | Gs | Af | A | As | Bf | B | Bs
->      deriving (Eq,Ord,Ix,Show,Read)
+>      deriving (Eq,Ord,Ix,Show,Read,Enum) --Enum added
 > type Octave     = Int
 
 \end{verbatim} 

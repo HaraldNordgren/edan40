@@ -85,6 +85,8 @@
 >                 test m
 >                 system "timidity test.mid"
 >                 return ()
+> timidity = testLinux
+>
 > testMac m = do
 >                 test m
 >                 system "open test.mid"

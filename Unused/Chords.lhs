@@ -1,4 +1,4 @@
-\section{Representing Chords}
+\section{Chords}
 \label{chords}
 
 Earlier I described how to represent chords as values of type {\tt
@@ -42,6 +42,8 @@ negation of the sum of the others.
 In either case, we can define a chord type as:
 \begin{verbatim} 
 
+> module Chords where
+> import Basics
 > type Chord = [AbsPitch]
 
 \end{verbatim} 

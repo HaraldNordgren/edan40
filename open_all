@@ -1,0 +1,4 @@
+#!/usr/bin/vim -S
+edit Twinkle.hs
+tabe LetItBe.hs
+tabe AutoComp.lhs
