@@ -4,9 +4,10 @@
 > import Twinkle
 > import LetItBe
 
+We translated the sheet music of Twinkle Twinkle Little Star into the Haskore Music object twinkleMelody, which is imported through Twinkle.hs.
 
+For the Auto Comp, we started from from the exemplary solution from http://www.linusakesson.net/music/functional/index.php.
 
-We first wrote Twinkle and Let It Be. For the Auto Comp, we started out by copying the following code from Linus Åkesson's exemplary solution (from http://www.linusakesson.net/music/functional/index.php):
 
 > showNote :: LNote -> String
 > showNote (base, offs) = ("CDEFGAB" !! mod base 7)
@@ -216,7 +217,9 @@ again renamed to lchord, LKey, LChord, LStyle, LNote
 >                               comp = autoChord chords
 
 
-We wrote the functions lnote and pitchclass to convert back and forth between Linus' implementation of notes as bare numbers, and our Haskore system of Pitch classes.
+Inspired by the pitchClass function in Basics.lhs, we now wrote functions lnote and pitchclass to convert back and forth between Linus' implementation of notes as bare numbers and our Pitch classes.
+
+
 
 > type LNote             = (Int, Int)
 > lnote :: PitchClass -> LNote
@@ -240,6 +243,8 @@ We wrote the functions lnote and pitchclass to convert back and forth between Li
 >     (6,-1) -> Bf;  (6,0) -> B; (6,1) -> Bs; 
 
 
+The chord assignments from the music sheets were used to encode Twinkle's chord progression.
+
 > cg = map helper2 [(C,hn),(G,hn)]
 > helper2 (pc, dur) = ((lnote pc, major), dur)
 
@@ -247,13 +252,16 @@ We wrote the functions lnote and pitchclass to convert back and forth between Li
 > twinkleprog2 = cg ++ cg ++ cg ++ cg
 > twinkleprog = twinkleprog1 ++ twinkleprog2 ++ twinkleprog1
 
+For the [] we chose Let It Be by The Beatles, which
+
 > letitbeprog1 = map helper2 [(C,wn),(G,wn)] ++ map helper2 [(A,hn),(F,hn)] 
 > letitbeprog2 = map helper2 [(C,wn),(G,wn)] ++ map helper2 [(F,hn),(C,hn)] ++ map helper2 [(D,hn),(C,hn)]
 > letitbeprog = letitbeprog1 ++ letitbeprog2 
 
 
+Finally, the autoComp functions is put to work, and we generate the three versions of Twinkle, and a basic bass version of Let It Be. Using the testLinux function, a test.mid is generated, and then played by timidty.
 
 > twinkleBasic   = autoComp twinkleMelody twinkleprog baseSet basic
 > twinkleCalypso = autoComp twinkleMelody twinkleprog baseSet calypso 
 > twinkleBoogie  = autoComp twinkleMelody twinkleprog baseSet boogie
-> letitbeBasic = autoComp letitbeMelody letitbeprog baseSet basic
+> letitbeBasic = autoComp letitbeMelody letitbeprog baseSet basi

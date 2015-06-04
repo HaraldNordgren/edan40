@@ -1,9 +1,9 @@
 module Twinkle where
 import Haskore
 
-vol  n = n   v
-lmap f l = line (map f l)
-v      = [Volume 80]
+vol n           = n v
+lmap f l        = line (map f l)
+v               = [Volume 80]
 quarters5 notes = lmap vol [x 5 qn | x <- notes]
 
 v1  = line [v1a, v1b, v1c, v1d]
