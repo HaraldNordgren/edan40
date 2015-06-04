@@ -1,12 +1,8 @@
 > module AutoComp where
 > import Haskore hiding (Key)
 > import Data.Ratio
-> import Twinkle
-> import LetItBe
 
-First we translated the sheet music of Twinkle Twinkle Little Star into the Haskore Music object twinkleMelody, which is imported through Twinkle.hs.
-
-For the AutoComp, we started from the exemplary solution from http://www.linusakesson.net/music/functional/index.php. Here, notes are represented as tuples, with the first element a number from 0 to 6 representing the letters C, D, E, F, G, A and B of an octave, and the second one representing sharp or flat notes as 1 or -1, respectively.
+We started from the exemplary solution from http://www.linusakesson.net/music/functional/index.php. Here, notes are represented as tuples, with the first element a number from 0 to 6 representing the letters C, D, E, F, G, A and B of an octave, and the second one representing sharp or flat notes as 1 or -1, respectively.
 
 > type LNote             = (Int, Int)
 > baseSet               = zip [0..6] [0,0..] :: [LNote]
@@ -183,7 +179,9 @@ Here autoBass is definied, which takes one of the styles defined above, together
 >                               next = nextChord pre (kind base)
 >                               (base, kind) = chord
 
-AutoChord in similar to autoBass, with the addition of the :=: operator for parallell composition. AutoComp puts it all together, invoking autoBass and autoChord and specifying instruments for each Music object with the Instr function and then putting them in a parallell composition.
+AutoChord in similar to autoBass, with the addition of the :=: operator for parallell composition. The volume of the chord voicing in set at 10% to avoid the bassline being drowned out.
+
+AutoComp puts it all together, invoking autoBass and autoChord and specifying instruments for each Music object with the Instr function and then putting them in a parallell composition.
 
 > autoChord :: ChordProgression -> Music
 > autoChord prog        = foldr1 (:+:)
@@ -192,7 +190,7 @@ AutoChord in similar to autoBass, with the addition of the :=: operator for para
 >                                       foldr1 (:=:)
 >                                               (map note chord)
 >                                       where note n = Note
->                                               (pitch n) dur []
+>                                               (pitch n) dur [Volume 10]
 > autoComp melody chords key style
 >                       = Tempo 1 $ foldr1 (:=:) [
 >                               (Instr "Lead 1 (square)" melody),
@@ -202,7 +200,7 @@ AutoChord in similar to autoBass, with the addition of the :=: operator for para
 >                               bass = autoBass style key chords
 >                               comp = autoChord chords
 
-To two formats of notes, Linus' one and the PitchClasses Haskore provides we wrote the functions lnote and pitchclass that convert back and forth.
+Now, to be able to utilize Linus' solution we wrote the functions lnote and convertFormat to convert from Haskore's PitchClasses to a format that fits autoComp.
 
 > lnote :: PitchClass -> LNote
 > lnote pc = case pc of
@@ -212,37 +210,10 @@ To two formats of notes, Linus' one and the PitchClasses Haskore provides we wro
 >      Ff -> (3,-1);  F -> (3,0); Fs -> (3,1);
 >      Gf -> (4,-1);  G -> (4,0); Gs -> (4,1);
 >      Af -> (5,-1);  A -> (5,0); As -> (5,1);
->      Bf -> (6,-1);  B -> (6,0); Bs -> (6,1); 
-
-> pitchclass :: LNote -> PitchClass
-> pitchclass note = case note of
->     (0,-1) -> Cf;  (0,0) -> C; (0,1) -> Cs;
->     (1,-1) -> Df;  (1,0) -> D; (1,1) -> Ds;
->     (2,-1) -> Ef;  (2,0) -> E; (2,1) -> Es;
->     (3,-1) -> Ff;  (3,0) -> F; (3,1) -> Fs;
->     (4,-1) -> Gf;  (4,0) -> G; (4,1) -> Gs;
->     (5,-1) -> Af;  (5,0) -> A; (5,1) -> As;
->     (6,-1) -> Bf;  (6,0) -> B; (6,1) -> Bs; 
-
-Then, using the chord assignments from the sheet music we encoded Twinkle's chord progression and mapped convertFormat onto the data. For the song of our chosing we picked Let It Be by The Beatles, where the melody is imported from LetItBe.hs, and did the same.
+>      Bf -> (6,-1);  B -> (6,0); Bs -> (6,1);
 
 > convertFormat (pc, dur) = ((lnote pc, major), dur)
 
-> cg = map convertFormat [(C,hn),(G,hn)]
-> twinkleChords1 = map convertFormat [(C,wn),(F,hn)] ++ cg ++ cg ++ map convertFormat [(C,hn)]
-> twinkleChords2 = cg ++ cg ++ cg ++ cg
-> twinkleChords = twinkleChords1 ++ twinkleChords2 ++ twinkleChords1
+In Twinkle.hs we translated the sheet music of Twinkle Twinkle Little Star into Haskore format as melody and a chord progression. For the song of our chosing we picked Let It Be by The Beatles and did the same.
 
-> letitbeChords1 = map convertFormat [(C,wn),(G,wn)] ++ map convertFormat [(A,hn),(F,hn)] 
-> letitbeChords2 = map convertFormat [(C,wn),(G,wn)] ++ map convertFormat [(F,hn),(C,hn)] ++ map convertFormat [(D,hn),(C,hn)]
-> letitbeChords = letitbeChords1 ++ letitbeChords2 
-
-Finally, the autoComp function is put to work and when we generate three versions of Twinkle, plus a basic bass version of Let It Be.
-
-By using the testLinux function, a test.mid file is generated and then played by timidty.
-
-> twinkleBasic   = Tempo 2 $ autoComp twinkleMelody twinkleChords baseSet basic
-> twinkleCalypso = Tempo 2 $ autoComp twinkleMelody twinkleChords baseSet calypso 
-> twinkleBoogie  = Tempo 2 $ autoComp twinkleMelody twinkleChords baseSet boogie
-> letitbeBasic = autoComp letitbeMelody letitbeChords baseSet basic
-
+Finally, the autoComp function is put to work in both files where we generate three versions of Twinkle and a basic bass version of Let It Be. By calling testLinux, a test.mid file is generated and then played by timidty.

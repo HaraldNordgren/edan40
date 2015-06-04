@@ -1,5 +1,6 @@
 module LetItBe where
 import Haskore
+import AutoComp
 
 vol n = n [Volume 80]
 lmap f l = line (map f l)
@@ -18,3 +19,9 @@ v9 = lmap vol [g 5 en, c 6 sn, d 6 en, e 6 sn]
 v10 = lmap vol [e 6 qn, e 6 en, d 6 en, d 6 en]
 v11 = lmap vol [c 6 sn, c 6 qn, e 6 en, e 6 en]
 v12 = lmap vol [f 6 en, e 6 sn, d 6 qn, e 6 en, d 6 en]
+
+letitbeChords1 = map convertFormat [(C,wn),(G,wn)] ++ map convertFormat [(A,hn),(F,hn)] 
+letitbeChords2 = map convertFormat [(C,wn),(G,wn)] ++ map convertFormat [(F,hn),(C,hn)] ++ map convertFormat [(D,hn),(C,hn)]
+letitbeChords = letitbeChords1 ++ letitbeChords2
+
+letitbeBasic = autoComp letitbeMelody letitbeChords baseSet basic
