@@ -1,19 +1,17 @@
 > module AutoComp where
-> import Haskore
+> import Haskore hiding (Key)
 > import Data.Ratio
 > import Twinkle
 > import LetItBe
 
-We translated the sheet music of Twinkle Twinkle Little Star into the Haskore Music object twinkleMelody, which is imported through Twinkle.hs.
+First we translated the sheet music of Twinkle Twinkle Little Star into the Haskore Music object twinkleMelody, which is imported through Twinkle.hs.
 
-For the Auto Comp, we started from from the exemplary solution from http://www.linusakesson.net/music/functional/index.php.
+For the AutoComp, we started from the exemplary solution from http://www.linusakesson.net/music/functional/index.php. Here, notes are represented as tuples, with the first element a number from 0 to 6 representing the letters C, D, E, F, G, A and B of an octave, and the second one representing sharp or flat notes as 1 or -1, respectively.
 
-
-> showNote :: LNote -> String
-> showNote (base, offs) = ("CDEFGAB" !! mod base 7)
->                       : replicate (abs offs)
->                               (if offs > 0 then '#' else 'b')
+> type LNote             = (Int, Int)
 > baseSet               = zip [0..6] [0,0..] :: [LNote]
+
+A baseset is generated with every regular (i.e. non-sharp and non-flat) note in an octave. This is the basis for all the accompaniments produced later.
 
 > upFifth, dnFifth :: LNote -> LNote
 > upFifth (base, offs)  = (
@@ -22,21 +20,18 @@ For the Auto Comp, we started from from the exemplary solution from http://www.l
 > dnFifth (base, offs)  = (
 >                               mod (base + 3) 7,
 >                               offs - if base == 3 then 1 else 0)
-
 > modulateUp, modulateDn :: [LNote] -> [LNote]
 > modulateUp set        = map upFifth set
 > modulateDn set        = map dnFifth set
 
+Functions are introduced to modulate a set of notes up or down on the note scale,
 
-Key renamed LKey to not clash with the type defined in Performance.lhs
-
-> type LKey             = [LNote]
-> type Circle           = [(LKey, LKey)]
-> circle :: LKey -> Circle
+> type Key             = [LNote]
+> type Circle           = [(Key, Key)]
+> circle :: Key -> Circle
 > circle key            = zip
 >                               (iterate modulateUp key)
 >                               (iterate modulateDn key)
-
 > set2scale :: LNote -> [LNote] -> [LNote]
 > set2scale (base, _) set
 >                       = [(scale, o) |
@@ -44,31 +39,29 @@ Key renamed LKey to not clash with the type defined in Performance.lhs
 >                               (b, o) <- set,
 >                               b == mod scale 7]
 
+and more functions to work with the "circle of fifths". For chords, we have functions to generate corresponding major and minor chords from a note.
+
 > major, minor :: LNote -> [LNote]
 > major                 = lchord [0, 2, 4] 0
 > minor                 = lchord [5, 0, 2] 5
-
 > nearest :: ([LNote] -> Bool) -> Circle -> [LNote]
 > nearest pred ((sh, fl) : restCircle)
 >       | pred sh       = sh
 >       | pred fl       = fl
 >       | otherwise     = nearest pred restCircle
-
-again renamed to lchord, LKey, LChord, LStyle, LNote
-
 > lchord :: [Int] -> Int -> LNote -> [LNote]
 > lchord subset pos base = map (set !!) subset
 >                               where set = nearest
 >                                       ((base ==) . (!! pos))
 >                                       (circle baseSet)
 
+Some type definitions, and then three bass patterns we are to use.
+
 > type ChordKind        = LNote -> [LNote]
-> type LChord            = (LNote, ChordKind)
-> type ChordProgression = [(LChord, Ratio Int)]
-
-
-> type LStyle            = [(Int, Ratio Int)]
-> basic, calypso, boogie :: LStyle
+> type Chord            = (LNote, ChordKind)
+> type ChordProgression = [(Chord, Ratio Int)]
+> type Style            = [(Int, Ratio Int)]
+> basic, calypso, boogie :: Style
 > basic                 = [(0, 1%2), (4, 1%2)]
 > calypso               = [
 >                               (-1, 1%4), (0, 1%8), (2, 1%8),
@@ -79,22 +72,22 @@ again renamed to lchord, LKey, LChord, LStyle, LNote
 >                               (0, 1%8), (4, 1%8),
 >                               (5, 1%8), (4, 1%8)]
 
-> findChord :: [LNote] -> LKey -> [LNote]
+> findChord :: [LNote] -> Key -> [LNote]
 > findChord chord key   = nearest inSet (circle key)
 >                               where
 >                         inSet set = all (flip elem set) chord
-
-> bassScale :: LChord -> LKey -> [LNote]
+> bassScale :: Chord -> Key -> [LNote]
 > bassScale (base, kind) key
 >                       = set2scale base
 >                               (findChord (kind base) key)
 
+Here autoBass is definied, which takes one of the styles defined above, together with a key and a chord progression and generates an accompaniment. The calculated values are made into a Haskore note via the data constructor Note in the toHask function, and then folded into a sequential arragement using the :+: operator.
+
 > semitonify :: LNote -> Int
 > semitonify (b, o)     = [0, 2, 4, 5, 7, 9, 11] !! mod b 7
 >                       + 12 * quot b 7 + o + 36
-
-> autoBassL :: LStyle -> LKey -> ChordProgression -> Music
-> autoBassL style key prog
+> autoBass :: Style -> Key -> ChordProgression -> Music
+> autoBass style key prog
 >                       = foldr1 (:+:) $ map toHask (bassLine
 >                               key
 >                               (cycle style)
@@ -106,7 +99,7 @@ again renamed to lchord, LKey, LChord, LStyle, LNote
 >                                       dur
 >                                       []
 
-> bassLine :: LKey -> LStyle -> ChordProgression ->
+> bassLine :: Key -> Style -> ChordProgression ->
 >                                       [(LNote, Ratio Int)]
 > bassLine _ _ []       = []
 > bassLine
@@ -133,7 +126,6 @@ again renamed to lchord, LKey, LChord, LStyle, LNote
 
 > resolveChord :: [LNote] -> [Int]
 > resolveChord chord    = map semitonify chord
-
 > octaveCombinations :: [Int] -> [[Int]]
 > octaveCombinations [] = [[]]
 > octaveCombinations (c:rChord)
@@ -147,12 +139,10 @@ again renamed to lchord, LKey, LChord, LStyle, LNote
 >                       = [ c | c <- octaveCombinations rChord,
 >                               all (>= 52) c,
 >                               all (<= 67) c]
-
 > sort :: [Int] -> [Int]
 > sort []               = []
 > sort list             = m: sort [ l | l <- list, l > m ]
 >                               where m = minimum list
-
 > combinations :: [LNote] -> [[Int]]
 > combinations chord
 >                       = map sort (validCombinations
@@ -160,10 +150,8 @@ again renamed to lchord, LKey, LChord, LStyle, LNote
 
 > staticScore :: [Int] -> Int
 > staticScore chord     = maximum chord - minimum chord
-
 > dynamicScore :: [Int] -> [Int] -> Int
 > dynamicScore c1 c2    = sum $ map abs $ zipWith (-) c1 c2
-
 > firstChord :: [LNote] -> [Int]
 > firstChord chord      = minimize staticScore
 >                               (combinations chord)
@@ -173,7 +161,6 @@ again renamed to lchord, LKey, LChord, LStyle, LNote
 >                               where score c = (+)
 >                                       (staticScore c)
 >                                       (dynamicScore pre c)
-
 > minimize :: ([Int] -> Int) -> [[Int]] -> [Int]
 > minimize func list    = fst $ head [ e | e <- doubleList,
 >                               snd e == minimum
@@ -187,7 +174,6 @@ again renamed to lchord, LKey, LChord, LStyle, LNote
 >                               where
 >                               first = firstChord (kind base)
 >                               (base, kind) = chord
-
 > nextVoicing :: [Int] -> ChordProgression ->
 >                                       [([Int], Ratio Int)]
 > nextVoicing _ []      = []
@@ -197,6 +183,8 @@ again renamed to lchord, LKey, LChord, LStyle, LNote
 >                               next = nextChord pre (kind base)
 >                               (base, kind) = chord
 
+AutoChord in similar to autoBass, with the addition of the :=: operator for parallell composition. AutoComp puts it all together, invoking autoBass and autoChord and specifying instruments for each Music object with the Instr function and then putting them in a parallell composition.
+
 > autoChord :: ChordProgression -> Music
 > autoChord prog        = foldr1 (:+:)
 >                               (map toHask (voicing prog))
@@ -205,23 +193,17 @@ again renamed to lchord, LKey, LChord, LStyle, LNote
 >                                               (map note chord)
 >                                       where note n = Note
 >                                               (pitch n) dur []
-
-
 > autoComp melody chords key style
 >                       = Tempo 1 $ foldr1 (:=:) [
 >                               (Instr "Lead 1 (square)" melody),
->                               (Instr "Acoustic Bass" bass),
+>                               (Instr "Timpani" bass),
 >                               (Instr "Overdriven Guitar" comp)]
 >                       where
->                               bass = autoBassL style key chords
+>                               bass = autoBass style key chords
 >                               comp = autoChord chords
 
+To two formats of notes, Linus' one and the PitchClasses Haskore provides we wrote the functions lnote and pitchclass that convert back and forth.
 
-Inspired by the pitchClass function in Basics.lhs, we now wrote functions lnote and pitchclass to convert back and forth between Linus' implementation of notes as bare numbers and our Pitch classes.
-
-
-
-> type LNote             = (Int, Int)
 > lnote :: PitchClass -> LNote
 > lnote pc = case pc of
 >      Cf -> (0,-1);  C -> (0,0); Cs -> (0,1);
@@ -242,26 +224,25 @@ Inspired by the pitchClass function in Basics.lhs, we now wrote functions lnote 
 >     (5,-1) -> Af;  (5,0) -> A; (5,1) -> As;
 >     (6,-1) -> Bf;  (6,0) -> B; (6,1) -> Bs; 
 
+Then, using the chord assignments from the sheet music we encoded Twinkle's chord progression and mapped convertFormat onto the data. For the song of our chosing we picked Let It Be by The Beatles, where the melody is imported from LetItBe.hs, and did the same.
 
-The chord assignments from the music sheets were used to encode Twinkle's chord progression.
+> convertFormat (pc, dur) = ((lnote pc, major), dur)
 
-> cg = map helper2 [(C,hn),(G,hn)]
-> helper2 (pc, dur) = ((lnote pc, major), dur)
+> cg = map convertFormat [(C,hn),(G,hn)]
+> twinkleChords1 = map convertFormat [(C,wn),(F,hn)] ++ cg ++ cg ++ map convertFormat [(C,hn)]
+> twinkleChords2 = cg ++ cg ++ cg ++ cg
+> twinkleChords = twinkleChords1 ++ twinkleChords2 ++ twinkleChords1
 
-> twinkleprog1 = map helper2 [(C,wn),(F,hn)] ++ cg ++ cg ++ map helper2 [(C,hn)]
-> twinkleprog2 = cg ++ cg ++ cg ++ cg
-> twinkleprog = twinkleprog1 ++ twinkleprog2 ++ twinkleprog1
+> letitbeChords1 = map convertFormat [(C,wn),(G,wn)] ++ map convertFormat [(A,hn),(F,hn)] 
+> letitbeChords2 = map convertFormat [(C,wn),(G,wn)] ++ map convertFormat [(F,hn),(C,hn)] ++ map convertFormat [(D,hn),(C,hn)]
+> letitbeChords = letitbeChords1 ++ letitbeChords2 
 
-For the [] we chose Let It Be by The Beatles, which
+Finally, the autoComp function is put to work and when we generate three versions of Twinkle, plus a basic bass version of Let It Be.
 
-> letitbeprog1 = map helper2 [(C,wn),(G,wn)] ++ map helper2 [(A,hn),(F,hn)] 
-> letitbeprog2 = map helper2 [(C,wn),(G,wn)] ++ map helper2 [(F,hn),(C,hn)] ++ map helper2 [(D,hn),(C,hn)]
-> letitbeprog = letitbeprog1 ++ letitbeprog2 
+By using the testLinux function, a test.mid file is generated and then played by timidty.
 
+> twinkleBasic   = Tempo 2 $ autoComp twinkleMelody twinkleChords baseSet basic
+> twinkleCalypso = Tempo 2 $ autoComp twinkleMelody twinkleChords baseSet calypso 
+> twinkleBoogie  = Tempo 2 $ autoComp twinkleMelody twinkleChords baseSet boogie
+> letitbeBasic = autoComp letitbeMelody letitbeChords baseSet basic
 
-Finally, the autoComp functions is put to work, and we generate the three versions of Twinkle, and a basic bass version of Let It Be. Using the testLinux function, a test.mid is generated, and then played by timidty.
-
-> twinkleBasic   = autoComp twinkleMelody twinkleprog baseSet basic
-> twinkleCalypso = autoComp twinkleMelody twinkleprog baseSet calypso 
-> twinkleBoogie  = autoComp twinkleMelody twinkleprog baseSet boogie
-> letitbeBasic = autoComp letitbeMelody letitbeprog baseSet basi

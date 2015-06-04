@@ -1,11 +1,10 @@
 module LetItBe where
 import Haskore
 
-vol  n = n   v
+vol n = n [Volume 80]
 lmap f l = line (map f l)
-v      = [Volume 80]
 
-letitbeMelody= line [v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12]
+letitbeMelody = line [v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12]
 
 v1 = lmap vol [g 5 sn, g 5 sn, g 5 en, g 5 qn]
 v2 = lmap vol [a 5 en, e 5 en, g 5 qn, g 5 en]
