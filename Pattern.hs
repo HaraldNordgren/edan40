@@ -55,7 +55,7 @@ matchCheck = matchTest == Just testSubstitutions
 
 -- Applying a single pattern
 transformationApply :: Eq a => a -> ([a] -> [a]) -> [a] -> ([a], [a]) -> Maybe [a]
-transformationApply wc f string (x, y) = mmap (substitute wc y) (mmap f $ match wc x string)
+transformationApply wc f string (x, y) = mmap ((substitute wc y) . f)  (match wc x string)
 
 
 -- Applying a list of patterns until one succeeds
